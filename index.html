@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>I.J.S.A - Dashboard Finances</title>
+    <title>I.J.S.A - Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <style>
@@ -18,12 +18,14 @@
         .logo-text { font-size: 0.7rem; font-weight: bold; color: white; letter-spacing: 1px; }
         .title-section h1 { font-size: 1.8rem; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
         .title-section p { color: var(--gray); font-size: 0.9rem; }
-        .header-actions { display: flex; gap: 1rem; align-items: center; }
+        .header-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
         .btn { background: var(--primary); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s; font-size: 0.9rem; }
         .btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
         .btn-secondary { background: var(--glass); border: 1px solid var(--glass-border); }
+        .filters { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+        select { background: var(--glass); border: 1px solid var(--glass-border); color: var(--light); padding: 0.5rem; border-radius: 6px; cursor: pointer; }
         nav { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .nav-btn { background: transparent; border: none; color: var(--gray); padding: 0.75rem 1.25rem; cursor: pointer; border-radius: 6px; transition: all 0.3s; font-size: 1rem; font-weight: 500; }
+        .nav-btn { background: transparent; border: none; color: var(--gray); padding: 0.75rem 1.25rem; cursor: pointer; border-radius: 6px; transition: all 0.3s; font-size: 1rem; font-weight: 500; position: relative; }
         .nav-btn:hover, .nav-btn.active { color: var(--light); background: var(--glass); }
         .nav-btn.active::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 100%; height: 3px; background: var(--primary); }
         .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
@@ -39,7 +41,7 @@
         .kpi-card { background: var(--glass); border: 2px solid var(--glass-border); border-radius: 16px; padding: 2rem; transition: all 0.3s; }
         .kpi-card:hover { transform: translateY(-8px); }
         .kpi-icon { font-size: 2.5rem; margin-bottom: 1rem; }
-        .kpi-label { color: var(--gray); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; font-weight: 600; }
+        .kpi-label { color: var(--gray); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; font-weight: 600; }
         .kpi-value { font-size: 2rem; font-weight: 800; margin: 0.75rem 0; }
         .positive { color: var(--success); } .negative { color: var(--danger); }
         .chart-container { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
@@ -65,6 +67,17 @@
                 </div>
             </div>
             <div class="header-actions">
+                <div class="filters">
+                    <select id="filterAnnee" onchange="applyFilters()"><option value="all">Toutes les années</option></select>
+                    <select id="filterTrimestre" onchange="applyFilters()">
+                        <option value="all">Tous les trimestres</option>
+                        <option value="1">T1 (Jan-Mar)</option>
+                        <option value="2">T2 (Avr-Juin)</option>
+                        <option value="3">T3 (Juil-Sep)</option>
+                        <option value="4">T4 (Oct-Déc)</option>
+                    </select>
+                    <select id="filterMois" onchange="applyFilters()"><option value="all">Tous les mois</option></select>
+                </div>
                 <button class="btn btn-secondary" onclick="refreshData()">🔄 Actualiser</button>
                 <button class="btn" onclick="exportPDF()">📄 Export PDF</button>
             </div>
@@ -85,9 +98,9 @@
                 <div class="hero-content"><h2>🏠 TABLEAU DE BORD</h2><p>Vue d'ensemble des activités I.J.S.A</p></div>
             </div>
             <div class="kpi-grid">
-                <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-label">RECETTES TOTALES</div><div class="kpi-value" id="accRecettes">R$ 0,00</div></div>
-                <div class="kpi-card"><div class="kpi-icon">👥</div><div class="kpi-label">MEMBRES ACTIFS</div><div class="kpi-value" id="accMembres">0</div></div>
-                <div class="kpi-card"><div class="kpi-icon">🎉</div><div class="kpi-label">ÉVÉNEMENTS</div><div class="kpi-value" id="accEvenements">0</div></div>
+                <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-label">Recettes Totales</div><div class="kpi-value" id="accRecettes">R$ 0,00</div></div>
+                <div class="kpi-card"><div class="kpi-icon">👥</div><div class="kpi-label">Membres Actifs</div><div class="kpi-value" id="accMembres">0</div></div>
+                <div class="kpi-card"><div class="kpi-icon">🎉</div><div class="kpi-label">Événements</div><div class="kpi-value" id="accEvenements">0</div></div>
             </div>
         </div>
 
@@ -96,13 +109,13 @@
                 <div class="hero-content"><h2>💰 GESTION FINANCIÈRE</h2><p>Suivi des recettes, charges et solde</p></div>
             </div>
             <div class="kpi-grid">
-                <div class="kpi-card"><div class="kpi-icon">💵</div><div class="kpi-label">RECETTES LOCATIVES</div><div class="kpi-value" id="finRecettes">R$ 0,00</div></div>
-                <div class="kpi-card"><div class="kpi-icon">💸</div><div class="kpi-label">CHARGES TOTALES</div><div class="kpi-value" id="finCharges">R$ 0,00</div></div>
-                <div class="kpi-card"><div class="kpi-icon">⚖️</div><div class="kpi-label">SOLDE RESTANT</div><div class="kpi-value" id="finSolde">R$ 0,00</div></div>
+                <div class="kpi-card"><div class="kpi-icon">💵</div><div class="kpi-label">Recettes Locatives</div><div class="kpi-value" id="finRecettes">R$ 0,00</div></div>
+                <div class="kpi-card"><div class="kpi-icon">💸</div><div class="kpi-label">Charges Totales</div><div class="kpi-value" id="finCharges">R$ 0,00</div></div>
+                <div class="kpi-card"><div class="kpi-icon">⚖️</div><div class="kpi-label">Solde Restant</div><div class="kpi-value" id="finSolde">R$ 0,00</div></div>
             </div>
             <div class="chart-container"><div class="chart-wrapper"><canvas id="chartEvolution"></canvas></div></div>
             <div class="table-container">
-                <table><thead><tr><th>MOIS</th><th>RECETTES</th><th>CHARGES</th><th>SOLDE</th></tr></thead><tbody id="tbodyFinances"></tbody></table>
+                <table><thead><tr><th>Mois</th><th>Recettes</th><th>Charges</th><th>Solde</th></tr></thead><tbody id="tbodyFinances"></tbody></table>
             </div>
         </div>
 
@@ -111,9 +124,9 @@
                 <div class="hero-content"><h2>👥 PARTICIPATION</h2><p>Membres et présence à la Sainte Cène</p></div>
             </div>
             <div class="kpi-grid">
-                <div class="kpi-card"><div class="kpi-icon">👤</div><div class="kpi-label">MEMBRES PRÉSENTS</div><div class="kpi-value" id="partMembres">0</div></div>
-                <div class="kpi-card"><div class="kpi-icon">✨</div><div class="kpi-label">NOUVEAUX MEMBRES AJOUTÉS</div><div class="kpi-value" id="partNouveaux">0</div></div>
-                <div class="kpi-card"><div class="kpi-icon">🍷</div><div class="kpi-label">TAUX DE PARTICIPATION À LA SAINTE CÈNE</div><div class="kpi-value" id="partTaux">0%</div></div>
+                <div class="kpi-card"><div class="kpi-icon">👤</div><div class="kpi-label">Membres Présents</div><div class="kpi-value" id="partMembres">0</div></div>
+                <div class="kpi-card"><div class="kpi-icon">✨</div><div class="kpi-label">Nouveaux Membres</div><div class="kpi-value" id="partNouveaux">0</div></div>
+                <div class="kpi-card"><div class="kpi-icon">🍷</div><div class="kpi-label">Taux Sainte Cène</div><div class="kpi-value" id="partTaux">0%</div></div>
             </div>
         </div>
 
@@ -122,9 +135,9 @@
                 <div class="hero-content"><h2>🎉 ÉVÉNEMENTS</h2><p>Mariages, baptêmes et anniversaires</p></div>
             </div>
             <div class="kpi-grid">
-                <div class="kpi-card"><div class="kpi-icon">💒</div><div class="kpi-label">MARIAGES CÉLÉBRÉS</div><div class="kpi-value" id="evtMariages">0</div></div>
-                <div class="kpi-card"><div class="kpi-icon">💧</div><div class="kpi-label">BAPTÊMES EFFECTUÉS</div><div class="kpi-value" id="evtBaptemes">0</div></div>
-                <div class="kpi-card"><div class="kpi-icon">🎂</div><div class="kpi-label">ANNIVERSAIRES CÉLÉBRÉS</div><div class="kpi-value" id="evtAnniv">0</div></div>
+                <div class="kpi-card"><div class="kpi-icon">💒</div><div class="kpi-label">Mariages Célébrés</div><div class="kpi-value" id="evtMariages">0</div></div>
+                <div class="kpi-card"><div class="kpi-icon">💧</div><div class="kpi-label">Baptêmes Effectués</div><div class="kpi-value" id="evtBaptemes">0</div></div>
+                <div class="kpi-card"><div class="kpi-icon">🎂</div><div class="kpi-label">Anniversaires Célébrés</div><div class="kpi-value" id="evtAnniv">0</div></div>
             </div>
         </div>
 
@@ -150,91 +163,121 @@
 
     <script>
         const API_URL = 'https://script.google.com/macros/s/AKfycbxjBQAWm8LL-QHQe0jo3Rvdhw3QQC8dPQmS7lmuUKlddhfo97uyfkyuHHsoltBXKJr9oA/exec';
-        
-        let financialData = [];
-        let charts = {};
+        let allData = [], filteredData = [], charts = {};
+        const moisMap = { 'janvier': 1, 'février': 2, 'mars': 3, 'avril': 4, 'mai': 5, 'juin': 6, 'juillet': 7, 'août': 8, 'septembre': 9, 'octobre': 10, 'novembre': 11, 'décembre': 12 };
 
         function showPage(pageId, btn) {
             document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
             if (btn) btn.classList.add('active');
-            if (pageId === 'finances') initCharts();
+            if (pageId === 'finances') setTimeout(initCharts, 100);
+        }
+
+        function parseBR(v) {
+            if (!v) return 0;
+            return parseFloat(String(v).replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+        }
+
+        function parsePct(v) {
+            if (!v) return 0;
+            return parseFloat(String(v).replace('%', '').replace(',', '.').trim()) || 0;
         }
 
         async function refreshData() {
             const btn = document.querySelector('button[onclick="refreshData()"]');
-            if (!btn) return;
             btn.innerHTML = '⏳ Chargement...';
-            
             try {
-                const response = await fetch(API_URL);
-                const data = await response.json();
-                
-                financialData = data.map(row => ({
-                    mois: row.mois || 'Mois',
-                    recettes: parseFloat(row.recettes_locatives || 0),
-                    charges: parseFloat(row.charge_totale || 0),
-                    solde: parseFloat(row.solde_restant || 0),
-                    membres: parseInt(row.membres || 0),
-                    nouveaux: parseInt(row.nouveau_ne || 0),
-                    taux: parseFloat(row.sainte_cene || 0),
-                    mariages: parseInt(row.mariage || 0),
-                    baptemes: parseInt(row.bapteme || 0),
-                    anniversaires: parseInt(row.anniversaire || 0)
-                }));
-
-                updateDashboard();
+                const data = await (await fetch(API_URL)).json();
+                allData = data.map(row => {
+                    const moisNum = moisMap[String(row.MOIS).toLowerCase()] || 1;
+                    return {
+                        annee: parseInt(row.ANNÉES) || 2026,
+                        mois: row.MOIS || 'Mois',
+                        moisNum: moisNum,
+                        trimestre: Math.ceil(moisNum / 3),
+                        recettes: parseBR(row['RECETTES LOCATIVES']),
+                        charges: parseBR(row['CHARGE TOTALE']),
+                        solde: parseBR(row['SOLDE RESTANT']),
+                        mariages: parseInt(row.MARIAGE) || 0,
+                        baptemes: parseInt(row.BAPTEME) || 0,
+                        membres: parseInt(row.MEMBRES) || 0,
+                        nouveaux: parseInt(row['NOUVEAU NÉ']) || 0,
+                        taux: parsePct(row['SAINTE CENE']),
+                        anniversaires: parseInt(row.ANNIVERSAIRE) || 0
+                    };
+                });
+                populateFilters();
+                applyFilters();
                 btn.innerHTML = '✅ Actualisé';
                 setTimeout(() => btn.innerHTML = '🔄 Actualiser', 2000);
-            } catch (error) {
+            } catch (e) {
                 btn.innerHTML = '❌ Erreur';
                 setTimeout(() => btn.innerHTML = '🔄 Actualiser', 2000);
             }
         }
 
-        function updateDashboard() {
-            const totals = financialData.reduce((acc, curr) => ({
-                recettes: acc.recettes + curr.recettes,
-                charges: acc.charges + curr.charges,
-                solde: acc.solde + curr.solde,
-                membres: acc.membres + curr.membres,
-                nouveaux: acc.nouveaux + curr.nouveaux,
-                mariages: acc.mariages + curr.mariages,
-                baptemes: acc.baptemes + curr.baptemes,
-                anniversaires: acc.anniversaires + curr.anniversaires
-            }), { recettes: 0, charges: 0, solde: 0, membres: 0, nouveaux: 0, mariages: 0, baptemes: 0, anniversaires: 0 });
+        function populateFilters() {
+            const selA = document.getElementById('filterAnnee'), valA = selA.value;
+            const annees = [...new Set(allData.map(d => d.annee))].sort((a, b) => b - a);
+            selA.innerHTML = '<option value="all">Toutes les années</option>';
+            annees.forEach(a => selA.innerHTML += `<option value="${a}">${a}</option>`);
+            if (annees.includes(parseInt(valA))) selA.value = valA;
 
-            document.getElementById('accRecettes').textContent = formatCurrency(totals.recettes);
-            document.getElementById('accMembres').textContent = totals.membres;
-            document.getElementById('accEvenements').textContent = totals.mariages + totals.baptemes;
-            document.getElementById('finRecettes').textContent = formatCurrency(totals.recettes);
-            document.getElementById('finCharges').textContent = formatCurrency(totals.charges);
-            document.getElementById('finSolde').textContent = formatCurrency(totals.solde);
-            document.getElementById('partMembres').textContent = totals.membres;
-            document.getElementById('partNouveaux').textContent = totals.nouveaux;
-            document.getElementById('partTaux').textContent = (totals.taux / financialData.length).toFixed(2) + '%';
-            document.getElementById('evtMariages').textContent = totals.mariages;
-            document.getElementById('evtBaptemes').textContent = totals.baptemes;
-            document.getElementById('evtAnniv').textContent = totals.anniversaires;
-
-            fillTable();
-            initCharts();
+            const selM = document.getElementById('filterMois'), valM = selM.value;
+            const mois = [...new Set(allData.map(d => d.moisNum))].sort((a, b) => a - b);
+            const noms = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+            selM.innerHTML = '<option value="all">Tous les mois</option>';
+            mois.forEach(m => selM.innerHTML += `<option value="${m}">${noms[m]}</option>`);
+            if (mois.includes(parseInt(valM))) selM.value = valM;
         }
 
-        function formatCurrency(value) {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(value || 0);
-        }
-
-        function fillTable() {
-            const tbody = document.getElementById('tbodyFinances');
-            if (!tbody) return;
-            tbody.innerHTML = '';
-            financialData.forEach(row => {
-                const tr = document.createElement('tr');
-                tr.innerHTML = `<td>${row.mois}</td><td>${formatCurrency(row.recettes)}</td><td>${formatCurrency(row.charges)}</td><td class="${row.solde < 0 ? 'negative' : 'positive'}">${formatCurrency(row.solde)}</td>`;
-                tbody.appendChild(tr);
+        function applyFilters() {
+            const a = document.getElementById('filterAnnee').value;
+            const t = document.getElementById('filterTrimestre').value;
+            const m = document.getElementById('filterMois').value;
+            filteredData = allData.filter(r => {
+                if (a !== 'all' && r.annee !== parseInt(a)) return false;
+                if (t !== 'all' && r.trimestre !== parseInt(t)) return false;
+                if (m !== 'all' && r.moisNum !== parseInt(m)) return false;
+                return true;
             });
+            updateDashboard();
+        }
+
+        function formatMoney(v) {
+            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
+        }
+
+        function updateDashboard() {
+            const t = filteredData.reduce((a, r) => ({
+                recettes: a.recettes + r.recettes, charges: a.charges + r.charges, solde: a.solde + r.solde,
+                membres: a.membres + r.membres, nouveaux: a.nouveaux + r.nouveaux, tauxSum: a.tauxSum + r.taux,
+                mariages: a.mariages + r.mariages, baptemes: a.baptemes + r.baptemes, anniversaires: a.anniversaires + r.anniversaires, count: a.count + 1
+            }), { recettes: 0, charges: 0, solde: 0, membres: 0, nouveaux: 0, tauxSum: 0, mariages: 0, baptemes: 0, anniversaires: 0, count: 0 });
+            const avg = t.count > 0 ? t.tauxSum / t.count : 0;
+
+            document.getElementById('accRecettes').textContent = formatMoney(t.recettes);
+            document.getElementById('accMembres').textContent = t.membres;
+            document.getElementById('accEvenements').textContent = t.mariages + t.baptemes;
+            document.getElementById('finRecettes').textContent = formatMoney(t.recettes);
+            document.getElementById('finCharges').textContent = formatMoney(t.charges);
+            const soldeEl = document.getElementById('finSolde');
+            soldeEl.textContent = formatMoney(t.solde);
+            soldeEl.className = 'kpi-value ' + (t.solde < 0 ? 'negative' : 'positive');
+            document.getElementById('partMembres').textContent = t.membres;
+            document.getElementById('partNouveaux').textContent = t.nouveaux;
+            document.getElementById('partTaux').textContent = avg.toFixed(2) + '%';
+            document.getElementById('evtMariages').textContent = t.mariages;
+            document.getElementById('evtBaptemes').textContent = t.baptemes;
+            document.getElementById('evtAnniv').textContent = t.anniversaires;
+
+            const tbody = document.getElementById('tbodyFinances');
+            tbody.innerHTML = '';
+            filteredData.forEach(r => {
+                tbody.innerHTML += `<tr><td>${r.mois} ${r.annee}</td><td>${formatMoney(r.recettes)}</td><td>${formatMoney(r.charges)}</td><td class="${r.solde < 0 ? 'negative' : 'positive'}">${formatMoney(r.solde)}</td></tr>`;
+            });
+            initCharts();
         }
 
         function initCharts() {
@@ -244,20 +287,22 @@
             charts.evolution = new Chart(ctx, {
                 type: 'line',
                 data: {
-                    labels: financialData.map(d => d.mois),
-                    datasets: [{ label: 'Recettes', data: financialData.map(d => d.recettes), borderColor: '#10b981', tension: 0.4 },
-                               { label: 'Charges', data: financialData.map(d => d.charges), borderColor: '#ef4444', tension: 0.4 }]
+                    labels: filteredData.map(d => d.mois),
+                    datasets: [
+                        { label: 'Recettes', data: filteredData.map(d => d.recettes), borderColor: '#10b981', tension: 0.4 },
+                        { label: 'Charges', data: filteredData.map(d => d.charges), borderColor: '#ef4444', tension: 0.4 }
+                    ]
                 },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8' } } }, scales: { y: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#94a3b8' } } } }
+                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8' } } }, scales: { y: { ticks: { color: '#94a3b8', callback: v => 'R$ ' + v.toLocaleString() }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } } } }
             });
         }
 
         function exportPDF() {
-            const element = document.querySelector('.page.active');
-            if (element) html2pdf().from(element).save('dashboard-ijsa.pdf');
+            const el = document.querySelector('.page.active');
+            if (el) html2pdf().from(el).save('dashboard-ijsa.pdf');
         }
 
-        window.onload = function() { refreshData(); };
+        window.onload = refreshData;
     </script>
 </body>
 </html>
