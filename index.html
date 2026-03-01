@@ -1,308 +1,115 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>I.J.S.A - Dashboard</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; }
-        :root { --primary: #6366f1; --primary-dark: #4f46e5; --secondary: #ec4899; --success: #10b981; --warning: #f59e0b; --danger: #ef4444; --dark: #1e293b; --darker: #0f172a; --light: #f8fafc; --gray: #64748b; --glass: rgba(255, 255, 255, 0.05); --glass-border: rgba(255, 255, 255, 0.1); }
-        body { font-family: 'Segoe UI', system-ui, sans-serif; background: linear-gradient(135deg, var(--darker) 0%, var(--dark) 100%); color: var(--light); min-height: 100vh; }
-        header { background: var(--glass); backdrop-filter: blur(10px); border-bottom: 1px solid var(--glass-border); padding: 1rem 2rem; position: sticky; top: 0; z-index: 1000; }
-        .header-top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 1rem; }
-        .logo-section { display: flex; align-items: center; gap: 1.5rem; }
-        .logo-pro { width: 80px; height: 80px; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); border-radius: 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 8px 32px rgba(99, 102, 241, 0.3); border: 3px solid rgba(255, 255, 255, 0.2); }
-        .logo-pro::before { content: '⛪'; font-size: 2rem; margin-bottom: 2px; }
-        .logo-text { font-size: 0.7rem; font-weight: bold; color: white; letter-spacing: 1px; }
-        .title-section h1 { font-size: 1.8rem; background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.25rem; }
-        .title-section p { color: var(--gray); font-size: 0.9rem; }
-        .header-actions { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
-        .btn { background: var(--primary); color: white; border: none; padding: 0.75rem 1.25rem; border-radius: 8px; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; transition: all 0.3s; font-size: 0.9rem; }
-        .btn:hover { background: var(--primary-dark); transform: translateY(-2px); }
-        .btn-secondary { background: var(--glass); border: 1px solid var(--glass-border); }
-        .filters { display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
-        select { background: var(--glass); border: 1px solid var(--glass-border); color: var(--light); padding: 0.5rem; border-radius: 6px; cursor: pointer; }
-        nav { display: flex; gap: 0.5rem; flex-wrap: wrap; }
-        .nav-btn { background: transparent; border: none; color: var(--gray); padding: 0.75rem 1.25rem; cursor: pointer; border-radius: 6px; transition: all 0.3s; font-size: 1rem; font-weight: 500; position: relative; }
-        .nav-btn:hover, .nav-btn.active { color: var(--light); background: var(--glass); }
-        .nav-btn.active::after { content: ''; position: absolute; bottom: -4px; left: 0; width: 100%; height: 3px; background: var(--primary); }
-        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
-        .page { display: none; animation: fadeIn 0.3s ease; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-        .page.active { display: block; }
-        .hero { height: 350px; border-radius: 20px; margin-bottom: 2rem; position: relative; overflow: hidden; background-size: cover; background-position: center; display: flex; align-items: center; justify-content: center; }
-        .hero::before { content: ''; position: absolute; inset: 0; background: linear-gradient(to bottom, rgba(0,0,0,0.3), rgba(0,0,0,0.7)); }
-        .hero-content { position: relative; z-index: 1; text-align: center; width: 100%; padding: 2rem; }
-        .hero h2 { font-size: 3.5rem; margin-bottom: 1rem; text-shadow: 3px 3px 6px rgba(0,0,0,0.8); color: white; font-weight: 800; }
-        .hero p { color: rgba(255,255,255,0.95); font-size: 1.4rem; text-shadow: 2px 2px 4px rgba(0,0,0,0.8); }
-        .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem; }
-        .kpi-card { background: var(--glass); border: 2px solid var(--glass-border); border-radius: 16px; padding: 2rem; transition: all 0.3s; }
-        .kpi-card:hover { transform: translateY(-8px); }
-        .kpi-icon { font-size: 2.5rem; margin-bottom: 1rem; }
-        .kpi-label { color: var(--gray); font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 0.5rem; font-weight: 600; }
-        .kpi-value { font-size: 2rem; font-weight: 800; margin: 0.75rem 0; }
-        .positive { color: var(--success); } .negative { color: var(--danger); }
-        .chart-container { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 2rem; margin-bottom: 2rem; }
-        .chart-wrapper { position: relative; height: 300px; }
-        .table-container { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; overflow: hidden; margin-top: 2rem; }
-        table { width: 100%; border-collapse: collapse; }
-        th, td { padding: 1.25rem; text-align: left; border-bottom: 1px solid var(--glass-border); }
-        th { background: rgba(255, 255, 255, 0.08); color: var(--gray); font-size: 0.9rem; text-transform: uppercase; }
-        .credits-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(350px, 1fr)); gap: 2rem; }
-        .credit-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: 16px; padding: 2.5rem; text-align: center; }
-        .credit-card h3 { color: var(--primary); margin-bottom: 1.5rem; font-size: 1.5rem; }
-        .highlight { color: var(--light); font-weight: bold; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Financier</title>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #f4f6f9;
+    margin: 0;
+    padding: 20px;
+}
+
+h1 {
+    text-align: center;
+}
+
+.card {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+    margin-bottom: 20px;
+}
+
+canvas {
+    max-width: 100%;
+}
+</style>
 </head>
 <body>
-    <header>
-        <div class="header-top">
-            <div class="logo-section">
-                <div class="logo-pro"><div class="logo-text">I.J.S.A</div></div>
-                <div class="title-section">
-                    <h1>Igreja de Jesus Cristo da Santidade</h1>
-                    <p>Arroio do Meio - RS, Brésil</p>
-                </div>
-            </div>
-            <div class="header-actions">
-                <div class="filters">
-                    <select id="filterAnnee" onchange="applyFilters()"><option value="all">Toutes les années</option></select>
-                    <select id="filterTrimestre" onchange="applyFilters()">
-                        <option value="all">Tous les trimestres</option>
-                        <option value="1">T1 (Jan-Mar)</option>
-                        <option value="2">T2 (Avr-Juin)</option>
-                        <option value="3">T3 (Juil-Sep)</option>
-                        <option value="4">T4 (Oct-Déc)</option>
-                    </select>
-                    <select id="filterMois" onchange="applyFilters()"><option value="all">Tous les mois</option></select>
-                </div>
-                <button class="btn btn-secondary" onclick="refreshData()">🔄 Actualiser</button>
-                <button class="btn" onclick="exportPDF()">📄 Export PDF</button>
-            </div>
-        </div>
-        <nav>
-            <button class="nav-btn active" onclick="showPage('accueil', this)">🏠 Accueil</button>
-            <button class="nav-btn" onclick="showPage('finances', this)">💰 Finances</button>
-            <button class="nav-btn" onclick="showPage('participation', this)">👥 Participation</button>
-            <button class="nav-btn" onclick="showPage('evenements', this)">🎉 Événements</button>
-            <button class="nav-btn" onclick="showPage('apropos', this)">⛪ À Propos</button>
-            <button class="nav-btn" onclick="showPage('credits', this)">📋 Crédits</button>
-        </nav>
-    </header>
 
-    <div class="container">
-        <div id="accueil" class="page active">
-            <div class="hero" style="background-image: url('https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=1200');">
-                <div class="hero-content"><h2>🏠 TABLEAU DE BORD</h2><p>Vue d'ensemble des activités I.J.S.A</p></div>
-            </div>
-            <div class="kpi-grid">
-                <div class="kpi-card"><div class="kpi-icon">💰</div><div class="kpi-label">Recettes Totales</div><div class="kpi-value" id="accRecettes">R$ 0,00</div></div>
-                <div class="kpi-card"><div class="kpi-icon">👥</div><div class="kpi-label">Membres Actifs</div><div class="kpi-value" id="accMembres">0</div></div>
-                <div class="kpi-card"><div class="kpi-icon">🎉</div><div class="kpi-label">Événements</div><div class="kpi-value" id="accEvenements">0</div></div>
-            </div>
-        </div>
+<h1>Dashboard Financier 2026</h1>
 
-        <div id="finances" class="page">
-            <div class="hero" style="background-image: url('https://images.unsplash.com/photo-1554224155-6726b3ff858f?w=1200');">
-                <div class="hero-content"><h2>💰 GESTION FINANCIÈRE</h2><p>Suivi des recettes, charges et solde</p></div>
-            </div>
-            <div class="kpi-grid">
-                <div class="kpi-card"><div class="kpi-icon">💵</div><div class="kpi-label">Recettes Locatives</div><div class="kpi-value" id="finRecettes">R$ 0,00</div></div>
-                <div class="kpi-card"><div class="kpi-icon">💸</div><div class="kpi-label">Charges Totales</div><div class="kpi-value" id="finCharges">R$ 0,00</div></div>
-                <div class="kpi-card"><div class="kpi-icon">⚖️</div><div class="kpi-label">Solde Restant</div><div class="kpi-value" id="finSolde">R$ 0,00</div></div>
-            </div>
-            <div class="chart-container"><div class="chart-wrapper"><canvas id="chartEvolution"></canvas></div></div>
-            <div class="table-container">
-                <table><thead><tr><th>Mois</th><th>Recettes</th><th>Charges</th><th>Solde</th></tr></thead><tbody id="tbodyFinances"></tbody></table>
-            </div>
-        </div>
+<div class="card">
+    <h2>Recettes Locatives</h2>
+    <canvas id="recettesChart"></canvas>
+</div>
 
-        <div id="participation" class="page">
-            <div class="hero" style="background-image: url('https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1200');">
-                <div class="hero-content"><h2>👥 PARTICIPATION</h2><p>Membres et présence à la Sainte Cène</p></div>
-            </div>
-            <div class="kpi-grid">
-                <div class="kpi-card"><div class="kpi-icon">👤</div><div class="kpi-label">Membres Présents</div><div class="kpi-value" id="partMembres">0</div></div>
-                <div class="kpi-card"><div class="kpi-icon">✨</div><div class="kpi-label">Nouveaux Membres</div><div class="kpi-value" id="partNouveaux">0</div></div>
-                <div class="kpi-card"><div class="kpi-icon">🍷</div><div class="kpi-label">Taux Sainte Cène</div><div class="kpi-value" id="partTaux">0%</div></div>
-            </div>
-        </div>
+<div class="card">
+    <h2>Charges Totales</h2>
+    <canvas id="chargesChart"></canvas>
+</div>
 
-        <div id="evenements" class="page">
-            <div class="hero" style="background-image: url('https://images.unsplash.com/photo-1519741497674-611481863552?w=1200');">
-                <div class="hero-content"><h2>🎉 ÉVÉNEMENTS</h2><p>Mariages, baptêmes et anniversaires</p></div>
-            </div>
-            <div class="kpi-grid">
-                <div class="kpi-card"><div class="kpi-icon">💒</div><div class="kpi-label">Mariages Célébrés</div><div class="kpi-value" id="evtMariages">0</div></div>
-                <div class="kpi-card"><div class="kpi-icon">💧</div><div class="kpi-label">Baptêmes Effectués</div><div class="kpi-value" id="evtBaptemes">0</div></div>
-                <div class="kpi-card"><div class="kpi-icon">🎂</div><div class="kpi-label">Anniversaires Célébrés</div><div class="kpi-value" id="evtAnniv">0</div></div>
-            </div>
-        </div>
+<div class="card">
+    <h2>Membres</h2>
+    <canvas id="membresChart"></canvas>
+</div>
 
-        <div id="apropos" class="page">
-            <div class="hero" style="background-image: url('https://images.unsplash.com/photo-1548625149-fc4a29cf7092?w=1200');">
-                <div class="hero-content"><h2>⛪ À PROPOS</h2><p>Igreja de Jesus Cristo da Santidade</p></div>
-            </div>
-            <div class="credits-grid">
-                <div class="credit-card"><h3>🏛️ Informations</h3><p>CNPJ: 47.812.517/0001-49</p><p>Rua Paraíba, 781 - Arroio do Meio/RS</p><p>📧 ijsa.070715@gmail.com</p></div>
-            </div>
-        </div>
+<script>
+const sheetID = "1B7ajOKNmgpUi9YnXtIBB5HIsBuDsq7R-0jPXOT1mhzo";
+const gid = "1942057819";
+const url = `https://docs.google.com/spreadsheets/d/${sheetID}/gviz/tq?tqx=out:json&gid=${gid}`;
 
-        <div id="credits" class="page">
-            <div class="hero" style="background-image: url('https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=1200');">
-                <div class="hero-content"><h2>📋 CRÉDITS</h2><p>Conception 2026</p></div>
-            </div>
-            <div class="credits-grid">
-                <div class="credit-card"><h3>👨‍💻 Concepteur</h3><p class="highlight">Ing. Marc Ange Jean Baptiste</p><p>📧 marcangejeanbaptiste@gmail.com</p></div>
-                <div class="credit-card"><h3>🏛️ Direction</h3><p><span class="highlight">Président:</span> Robeme Belizaire</p><p><span class="highlight">Vice-président:</span> Diego</p></div>
-            </div>
-        </div>
-    </div>
+fetch(url)
+.then(res => res.text())
+.then(rep => {
+    const json = JSON.parse(rep.substr(47).slice(0, -2));
+    const rows = json.table.rows;
 
-    <script>
-        const API_URL = 'https://script.google.com/macros/s/AKfycbxjBQAWm8LL-QHQe0jo3Rvdhw3QQC8dPQmS7lmuUKlddhfo97uyfkyuHHsoltBXKJr9oA/exec';
-        let allData = [], filteredData = [], charts = {};
-        const moisMap = { 'janvier': 1, 'février': 2, 'mars': 3, 'avril': 4, 'mai': 5, 'juin': 6, 'juillet': 7, 'août': 8, 'septembre': 9, 'octobre': 10, 'novembre': 11, 'décembre': 12 };
+    const mois = [];
+    const recettes = [];
+    const charges = [];
+    const membres = [];
 
-        function showPage(pageId, btn) {
-            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
-            if (btn) btn.classList.add('active');
-            if (pageId === 'finances') setTimeout(initCharts, 100);
+    rows.forEach(r => {
+        if (!r.c) return;
+
+        mois.push(r.c[2]?.v || "");
+        recettes.push(parseFloat((r.c[3]?.v || 0)));
+        charges.push(parseFloat((r.c[4]?.v || 0)));
+        membres.push(parseFloat((r.c[10]?.v || 0)));
+    });
+
+    new Chart(document.getElementById("recettesChart"), {
+        type: "bar",
+        data: {
+            labels: mois,
+            datasets: [{
+                label: "Recettes",
+                data: recettes
+            }]
         }
+    });
 
-        function parseBR(v) {
-            if (!v) return 0;
-            return parseFloat(String(v).replace('R$', '').replace(/\./g, '').replace(',', '.').trim()) || 0;
+    new Chart(document.getElementById("chargesChart"), {
+        type: "bar",
+        data: {
+            labels: mois,
+            datasets: [{
+                label: "Charges",
+                data: charges
+            }]
         }
+    });
 
-        function parsePct(v) {
-            if (!v) return 0;
-            return parseFloat(String(v).replace('%', '').replace(',', '.').trim()) || 0;
+    new Chart(document.getElementById("membresChart"), {
+        type: "line",
+        data: {
+            labels: mois,
+            datasets: [{
+                label: "Membres",
+                data: membres
+            }]
         }
+    });
+});
+</script>
 
-        async function refreshData() {
-            const btn = document.querySelector('button[onclick="refreshData()"]');
-            btn.innerHTML = '⏳ Chargement...';
-            try {
-                const data = await (await fetch(API_URL)).json();
-                allData = data.map(row => {
-                    const moisNum = moisMap[String(row.MOIS).toLowerCase()] || 1;
-                    return {
-                        annee: parseInt(row.ANNÉES) || 2026,
-                        mois: row.MOIS || 'Mois',
-                        moisNum: moisNum,
-                        trimestre: Math.ceil(moisNum / 3),
-                        recettes: parseBR(row['RECETTES LOCATIVES']),
-                        charges: parseBR(row['CHARGE TOTALE']),
-                        solde: parseBR(row['SOLDE RESTANT']),
-                        mariages: parseInt(row.MARIAGE) || 0,
-                        baptemes: parseInt(row.BAPTEME) || 0,
-                        membres: parseInt(row.MEMBRES) || 0,
-                        nouveaux: parseInt(row['NOUVEAU NÉ']) || 0,
-                        taux: parsePct(row['SAINTE CENE']),
-                        anniversaires: parseInt(row.ANNIVERSAIRE) || 0
-                    };
-                });
-                populateFilters();
-                applyFilters();
-                btn.innerHTML = '✅ Actualisé';
-                setTimeout(() => btn.innerHTML = '🔄 Actualiser', 2000);
-            } catch (e) {
-                btn.innerHTML = '❌ Erreur';
-                setTimeout(() => btn.innerHTML = '🔄 Actualiser', 2000);
-            }
-        }
-
-        function populateFilters() {
-            const selA = document.getElementById('filterAnnee'), valA = selA.value;
-            const annees = [...new Set(allData.map(d => d.annee))].sort((a, b) => b - a);
-            selA.innerHTML = '<option value="all">Toutes les années</option>';
-            annees.forEach(a => selA.innerHTML += `<option value="${a}">${a}</option>`);
-            if (annees.includes(parseInt(valA))) selA.value = valA;
-
-            const selM = document.getElementById('filterMois'), valM = selM.value;
-            const mois = [...new Set(allData.map(d => d.moisNum))].sort((a, b) => a - b);
-            const noms = ['', 'Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-            selM.innerHTML = '<option value="all">Tous les mois</option>';
-            mois.forEach(m => selM.innerHTML += `<option value="${m}">${noms[m]}</option>`);
-            if (mois.includes(parseInt(valM))) selM.value = valM;
-        }
-
-        function applyFilters() {
-            const a = document.getElementById('filterAnnee').value;
-            const t = document.getElementById('filterTrimestre').value;
-            const m = document.getElementById('filterMois').value;
-            filteredData = allData.filter(r => {
-                if (a !== 'all' && r.annee !== parseInt(a)) return false;
-                if (t !== 'all' && r.trimestre !== parseInt(t)) return false;
-                if (m !== 'all' && r.moisNum !== parseInt(m)) return false;
-                return true;
-            });
-            updateDashboard();
-        }
-
-        function formatMoney(v) {
-            return new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v);
-        }
-
-        function updateDashboard() {
-            const t = filteredData.reduce((a, r) => ({
-                recettes: a.recettes + r.recettes, charges: a.charges + r.charges, solde: a.solde + r.solde,
-                membres: a.membres + r.membres, nouveaux: a.nouveaux + r.nouveaux, tauxSum: a.tauxSum + r.taux,
-                mariages: a.mariages + r.mariages, baptemes: a.baptemes + r.baptemes, anniversaires: a.anniversaires + r.anniversaires, count: a.count + 1
-            }), { recettes: 0, charges: 0, solde: 0, membres: 0, nouveaux: 0, tauxSum: 0, mariages: 0, baptemes: 0, anniversaires: 0, count: 0 });
-            const avg = t.count > 0 ? t.tauxSum / t.count : 0;
-
-            document.getElementById('accRecettes').textContent = formatMoney(t.recettes);
-            document.getElementById('accMembres').textContent = t.membres;
-            document.getElementById('accEvenements').textContent = t.mariages + t.baptemes;
-            document.getElementById('finRecettes').textContent = formatMoney(t.recettes);
-            document.getElementById('finCharges').textContent = formatMoney(t.charges);
-            const soldeEl = document.getElementById('finSolde');
-            soldeEl.textContent = formatMoney(t.solde);
-            soldeEl.className = 'kpi-value ' + (t.solde < 0 ? 'negative' : 'positive');
-            document.getElementById('partMembres').textContent = t.membres;
-            document.getElementById('partNouveaux').textContent = t.nouveaux;
-            document.getElementById('partTaux').textContent = avg.toFixed(2) + '%';
-            document.getElementById('evtMariages').textContent = t.mariages;
-            document.getElementById('evtBaptemes').textContent = t.baptemes;
-            document.getElementById('evtAnniv').textContent = t.anniversaires;
-
-            const tbody = document.getElementById('tbodyFinances');
-            tbody.innerHTML = '';
-            filteredData.forEach(r => {
-                tbody.innerHTML += `<tr><td>${r.mois} ${r.annee}</td><td>${formatMoney(r.recettes)}</td><td>${formatMoney(r.charges)}</td><td class="${r.solde < 0 ? 'negative' : 'positive'}">${formatMoney(r.solde)}</td></tr>`;
-            });
-            initCharts();
-        }
-
-        function initCharts() {
-            const ctx = document.getElementById('chartEvolution');
-            if (!ctx) return;
-            if (charts.evolution) charts.evolution.destroy();
-            charts.evolution = new Chart(ctx, {
-                type: 'line',
-                data: {
-                    labels: filteredData.map(d => d.mois),
-                    datasets: [
-                        { label: 'Recettes', data: filteredData.map(d => d.recettes), borderColor: '#10b981', tension: 0.4 },
-                        { label: 'Charges', data: filteredData.map(d => d.charges), borderColor: '#ef4444', tension: 0.4 }
-                    ]
-                },
-                options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { labels: { color: '#94a3b8' } } }, scales: { y: { ticks: { color: '#94a3b8', callback: v => 'R$ ' + v.toLocaleString() }, grid: { color: 'rgba(255,255,255,0.05)' } }, x: { ticks: { color: '#94a3b8' }, grid: { color: 'rgba(255,255,255,0.05)' } } } }
-            });
-        }
-
-        function exportPDF() {
-            const el = document.querySelector('.page.active');
-            if (el) html2pdf().from(el).save('dashboard-ijsa.pdf');
-        }
-
-        window.onload = refreshData;
-    </script>
 </body>
 </html>
